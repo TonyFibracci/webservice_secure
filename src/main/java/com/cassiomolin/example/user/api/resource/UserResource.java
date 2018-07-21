@@ -1,7 +1,7 @@
 package com.cassiomolin.example.user.api.resource;
 
 import com.cassiomolin.example.user.api.model.QueryUserResult;
-import com.cassiomolin.example.user.domain.User;
+import com.cassiomolin.example.user.domain.UserAccount;
 import com.cassiomolin.example.user.service.UserService;
 
 import javax.annotation.security.PermitAll;
@@ -51,7 +51,7 @@ public class UserResource {
     @RolesAllowed({"ADMIN"})
     public Response getUser(@PathParam("userId") Long userId) {
 
-        User user = userService.findById(userId).orElseThrow(NotFoundException::new);
+        UserAccount user = userService.findById(userId).orElseThrow(NotFoundException::new);
         QueryUserResult queryUserResult = toQueryUserResult(user);
         return Response.ok(queryUserResult).build();
     }
@@ -71,18 +71,18 @@ public class UserResource {
             return Response.ok(queryUserResult).build();
         }
 
-        User user = userService.findByUsernameOrEmail(principal.getName());
+        UserAccount user = userService.findByUsernameOrEmail(principal.getName());
         QueryUserResult queryUserResult = toQueryUserResult(user);
         return Response.ok(queryUserResult).build();
     }
 
     /**
-     * Maps a {@link User} instance to a {@link QueryUserResult} instance.
+     * Maps a {@link UserAccount} instance to a {@link QueryUserResult} instance.
      *
      * @param user
      * @return
      */
-    private QueryUserResult toQueryUserResult(User user) {
+    private QueryUserResult toQueryUserResult(UserAccount user) {
         QueryUserResult queryUserResult = new QueryUserResult();
         queryUserResult.setId(user.getId());
         queryUserResult.setFirstName(user.getFirstName());

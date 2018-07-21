@@ -1,6 +1,6 @@
 package com.cassiomolin.example.user.service;
 
-import com.cassiomolin.example.user.domain.User;
+import com.cassiomolin.example.user.domain.UserAccount;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Service that provides operations for {@link User}s.
+ * Service that provides operations for {@link UserAccount}s.
  *
  * @author cassiomolin
  */
@@ -25,8 +25,8 @@ public class UserService {
      * @param identifier
      * @return
      */
-    public User findByUsernameOrEmail(String identifier) {
-        List<User> users = em.createQuery("SELECT u FROM User u WHERE u.username = :identifier OR u.email = :identifier", User.class)
+    public UserAccount findByUsernameOrEmail(String identifier) {
+        List<UserAccount> users = em.createQuery("SELECT u FROM UserAccount u WHERE u.username = :identifier OR u.email = :identifier", UserAccount.class)
                 .setParameter("identifier", identifier)
                 .setMaxResults(1)
                 .getResultList();
@@ -41,8 +41,8 @@ public class UserService {
      *
      * @return
      */
-    public List<User> findAll() {
-        return em.createQuery("SELECT u FROM User u", User.class).getResultList();
+    public List<UserAccount> findAll() {
+        return em.createQuery("SELECT u FROM UserAccount u", UserAccount.class).getResultList();
     }
 
     /**
@@ -51,7 +51,7 @@ public class UserService {
      * @param userId
      * @return
      */
-    public Optional<User> findById(Long userId) {
-        return Optional.ofNullable(em.find(User.class, userId));
+    public Optional<UserAccount> findById(Long userId) {
+        return Optional.ofNullable(em.find(UserAccount.class, userId));
     }
 }

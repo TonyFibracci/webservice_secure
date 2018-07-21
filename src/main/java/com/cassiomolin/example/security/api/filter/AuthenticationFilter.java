@@ -4,7 +4,7 @@ import com.cassiomolin.example.security.api.AuthenticatedUserDetails;
 import com.cassiomolin.example.security.api.AuthenticationTokenDetails;
 import com.cassiomolin.example.security.api.TokenBasedSecurityContext;
 import com.cassiomolin.example.security.service.AuthenticationTokenService;
-import com.cassiomolin.example.user.domain.User;
+import com.cassiomolin.example.user.domain.UserAccount;
 import com.cassiomolin.example.user.service.UserService;
 
 import javax.annotation.Priority;
@@ -50,7 +50,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
     private void handleTokenBasedAuthentication(String authenticationToken, ContainerRequestContext requestContext) {
 
         AuthenticationTokenDetails authenticationTokenDetails = authenticationTokenService.parseToken(authenticationToken);
-        User user = userService.findByUsernameOrEmail(authenticationTokenDetails.getUsername());
+        UserAccount user = userService.findByUsernameOrEmail(authenticationTokenDetails.getUsername());
         AuthenticatedUserDetails authenticatedUserDetails = new AuthenticatedUserDetails(user.getUsername(), user.getAuthorities());
 
         boolean isSecure = requestContext.getSecurityContext().isSecure();

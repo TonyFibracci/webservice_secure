@@ -12,9 +12,14 @@ import java.util.Set;
  * @author cassiomolin
  */
 @Entity
-public class User implements Serializable {
+public class UserAccount implements Serializable {
 
-    @Id
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	@Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
@@ -109,7 +114,7 @@ public class User implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        User user = (User) o;
+        UserAccount user = (UserAccount) o;
         return username != null ? username.equals(user.username) : user.username == null;
     }
 

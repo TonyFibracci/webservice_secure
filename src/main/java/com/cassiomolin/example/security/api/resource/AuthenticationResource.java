@@ -6,7 +6,7 @@ import com.cassiomolin.example.security.api.model.AuthenticationToken;
 import com.cassiomolin.example.security.api.model.UserCredentials;
 import com.cassiomolin.example.security.service.AuthenticationTokenService;
 import com.cassiomolin.example.security.service.UsernamePasswordValidator;
-import com.cassiomolin.example.user.domain.User;
+import com.cassiomolin.example.user.domain.UserAccount;
 
 import javax.annotation.security.PermitAll;
 import javax.enterprise.context.RequestScoped;
@@ -50,7 +50,7 @@ public class AuthenticationResource {
     @PermitAll
     public Response authenticate(UserCredentials credentials) {
 
-        User user = usernamePasswordValidator.validateCredentials(credentials.getUsername(), credentials.getPassword());
+        UserAccount user = usernamePasswordValidator.validateCredentials(credentials.getUsername(), credentials.getPassword());
         String token = authenticationTokenService.issueToken(user.getUsername(), user.getAuthorities());
         AuthenticationToken authenticationToken = new AuthenticationToken();
         authenticationToken.setToken(token);

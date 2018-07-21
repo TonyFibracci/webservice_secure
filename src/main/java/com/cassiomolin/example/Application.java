@@ -11,7 +11,15 @@ import io.undertow.servlet.api.DeploymentManager;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.jboss.weld.environment.servlet.Listener;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
 import javax.servlet.ServletException;
+
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.security.KeyStore;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.logging.Logger;
 
 import static io.undertow.servlet.Servlets.listener;
@@ -27,7 +35,8 @@ public class Application {
 
     private static DeploymentManager deploymentManager;
 
-    private static final int DEFAULT_PORT = 8080;
+    private static final int DEFAULT_HTTP_PORT = 8080;
+    private static final int DEFAULT_HTTPS_PORT = 443;
 
     private static final Logger LOGGER = Logger.getLogger(Application.class.getName());
 
@@ -37,7 +46,7 @@ public class Application {
      * @param args
      */
     public static void main(final String[] args) {
-        startServer(DEFAULT_PORT);
+        startServer(DEFAULT_HTTP_PORT, DEFAULT_HTTPS_PORT);
     }
 
     /**
@@ -45,20 +54,43 @@ public class Application {
      *
      * @param port
      */
-    public static void startServer(int port) {
+    public static void startServer(int portHttp, int portHttps) {
 
-        LOGGER.info(String.format("Starting server on port %d", port));
+        LOGGER.info(String.format("Starting server on port %d", portHttp));
 
         PathHandler path = Handlers.path();
+        
+//        SSLContext sslContext = null;
+//        try {
+//			InputStream is = new FileInputStream("C:\\Users\\Suiteng\\server.crt");
+//			 // You could get a resource as a stream instead.
+//			
+//			 CertificateFactory cf = CertificateFactory.getInstance("X.509");
+//			 X509Certificate caCert = (X509Certificate)cf.generateCertificate(is);
+//			
+//			 TrustManagerFactory tmf = TrustManagerFactory
+//			     .getInstance(TrustManagerFactory.getDefaultAlgorithm());
+//			 KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+//			 ks.load(null); // You don't need the KeyStore instance to come from a file.
+//			 ks.setCertificateEntry("caCert", caCert);
+//			
+//			 tmf.init(ks);
+//			
+//			 sslContext = SSLContext.getInstance("TLS");
+//			 sslContext.init(null, tmf.getTrustManagers(), null);
+//        } catch (Exception e) {
+//        	e.printStackTrace();
+//        }
 
         server = Undertow.builder()
-                .addHttpListener(port, "localhost")
+                .addHttpListener(portHttp, "localhost")
+//                .addHttpsListener(portHttps, "localhost", sslContext)
                 .setHandler(path)
                 .build();
 
         server.start();
 
-        LOGGER.info(String.format("Server started on port %d", port));
+        LOGGER.info(String.format("Server started on port %d", portHttp));
 
         DeploymentInfo servletBuilder = Servlets.deployment()
                 .setClassLoader(Application.class.getClassLoader())

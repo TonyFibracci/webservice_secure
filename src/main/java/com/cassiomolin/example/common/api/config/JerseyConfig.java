@@ -9,6 +9,8 @@ import com.cassiomolin.example.security.api.filter.AuthenticationFilter;
 import com.cassiomolin.example.security.api.filter.AuthorizationFilter;
 import com.cassiomolin.example.security.api.resource.AuthenticationResource;
 import com.cassiomolin.example.user.api.resource.UserResource;
+import com.nashtools.webservice.resources.StrategyResource;
+
 import org.glassfish.jersey.server.ResourceConfig;
 
 import javax.ws.rs.ApplicationPath;
@@ -26,6 +28,8 @@ public class JerseyConfig extends ResourceConfig {
         register(AuthenticationResource.class);
         register(GreetingResource.class);
         register(UserResource.class);
+        
+        register(StrategyResource.class);
 
         register(AuthenticationFilter.class);
         register(AuthorizationFilter.class);

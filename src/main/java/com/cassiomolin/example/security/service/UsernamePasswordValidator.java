@@ -2,7 +2,7 @@ package com.cassiomolin.example.security.service;
 
 
 import com.cassiomolin.example.security.exception.AuthenticationException;
-import com.cassiomolin.example.user.domain.User;
+import com.cassiomolin.example.user.domain.UserAccount;
 import com.cassiomolin.example.user.service.UserService;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -29,9 +29,9 @@ public class UsernamePasswordValidator {
      * @param password
      * @return
      */
-    public User validateCredentials(String username, String password) {
+    public UserAccount validateCredentials(String username, String password) {
 
-        User user = userService.findByUsernameOrEmail(username);
+        UserAccount user = userService.findByUsernameOrEmail(username);
 
         if (user == null) {
             // User cannot be found with the given username/email
