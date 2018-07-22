@@ -4,6 +4,7 @@ import com.cassiomolin.example.security.api.AuthenticationTokenDetails;
 import com.cassiomolin.example.security.api.TokenBasedSecurityContext;
 import com.cassiomolin.example.security.api.model.AuthenticationToken;
 import com.cassiomolin.example.security.api.model.UserCredentials;
+import com.cassiomolin.example.security.service.AuthenticationSingleUserValidator;
 import com.cassiomolin.example.security.service.AuthenticationTokenService;
 import com.cassiomolin.example.security.service.UsernamePasswordValidator;
 import com.cassiomolin.example.user.domain.UserAccount;
@@ -37,6 +38,9 @@ public class AuthenticationResource {
 
     @Inject
     private AuthenticationTokenService authenticationTokenService;
+    
+    @Inject
+    private AuthenticationSingleUserValidator singleUserValidator;
 
     /**
      * Validate user credentials and issue a token for the user.
@@ -52,6 +56,8 @@ public class AuthenticationResource {
 
         UserAccount user = usernamePasswordValidator.validateCredentials(credentials.getUsername(), credentials.getPassword());
         String token = authenticationTokenService.issueToken(user.getUsername(), user.getAuthorities());
+        singleUserValidator.addUserTokenMapping(user.getUsername(), token);
+        singleUserValidator.isUserTokenValid(user.getUsername(), token);
         AuthenticationToken authenticationToken = new AuthenticationToken();
         authenticationToken.setToken(token);
         return Response.ok(authenticationToken).build();
@@ -70,7 +76,7 @@ public class AuthenticationResource {
         AuthenticationTokenDetails tokenDetails =
                 ((TokenBasedSecurityContext) securityContext).getAuthenticationTokenDetails();
         String token = authenticationTokenService.refreshToken(tokenDetails);
-
+        singleUserValidator.addUserTokenMapping(tokenDetails.getUsername(), token);
         AuthenticationToken authenticationToken = new AuthenticationToken();
         authenticationToken.setToken(token);
         return Response.ok(authenticationToken).build();

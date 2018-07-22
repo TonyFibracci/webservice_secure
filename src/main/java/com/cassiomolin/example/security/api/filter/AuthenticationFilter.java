@@ -3,6 +3,7 @@ package com.cassiomolin.example.security.api.filter;
 import com.cassiomolin.example.security.api.AuthenticatedUserDetails;
 import com.cassiomolin.example.security.api.AuthenticationTokenDetails;
 import com.cassiomolin.example.security.api.TokenBasedSecurityContext;
+import com.cassiomolin.example.security.service.AuthenticationSingleUserValidator;
 import com.cassiomolin.example.security.service.AuthenticationTokenService;
 import com.cassiomolin.example.user.domain.UserAccount;
 import com.cassiomolin.example.user.service.UserService;
@@ -33,6 +34,9 @@ public class AuthenticationFilter implements ContainerRequestFilter {
 
     @Inject
     private AuthenticationTokenService authenticationTokenService;
+    
+    @Inject
+    private AuthenticationSingleUserValidator singleUserValidator;
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
@@ -51,6 +55,8 @@ public class AuthenticationFilter implements ContainerRequestFilter {
 
         AuthenticationTokenDetails authenticationTokenDetails = authenticationTokenService.parseToken(authenticationToken);
         UserAccount user = userService.findByUsernameOrEmail(authenticationTokenDetails.getUsername());
+        System.out.println(user.getUsername() + "\n" + authenticationToken);
+        singleUserValidator.isUserTokenValid(user.getUsername(), authenticationToken);
         AuthenticatedUserDetails authenticatedUserDetails = new AuthenticatedUserDetails(user.getUsername(), user.getAuthorities());
 
         boolean isSecure = requestContext.getSecurityContext().isSecure();
