@@ -32,6 +32,7 @@ public class UserResource {
 
     @Inject
     private UserService userService;
+   
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -71,11 +72,50 @@ public class UserResource {
             return Response.ok(queryUserResult).build();
         }
 
-        UserAccount user = userService.findByUsernameOrEmail(principal.getName());
+        UserAccount user = userService.findByUsername(principal.getName());
         QueryUserResult queryUserResult = toQueryUserResult(user);
         return Response.ok(queryUserResult).build();
     }
-
+    
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed({"ADMIN"})
+    public Response addUser(UserAccount user) {
+		userService.addUser(user);
+		QueryUserResult queryUserResult = toQueryUserResult(user);
+		return Response.ok(queryUserResult).build();
+    }
+    
+    @GET
+    @Path("month/{userName}/{quantity}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed({"ADMIN"})
+    public Response extendLicenseForMonths(@PathParam("userName") String userName, @PathParam("quantity") int months) {
+		userService.extendLicenseMonth(userName, months);
+		return Response.ok().build();
+    }
+    
+    @GET
+    @Path("week/{userName}/{quantity}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed({"ADMIN"})
+    public Response extendLicenseForWeeks(@PathParam("userName") String userName, @PathParam("quantity") int weeks) {
+		userService.extendLicenseWeek(userName, weeks);;
+		return Response.ok().build();
+    }
+    
+    @GET
+    @Path("reset/{userName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed({"ADMIN"})
+    public Response resetLicense(@PathParam("userName") String userName) {
+		userService.resetLicense(userName);
+		return Response.ok().build();
+    }
+    
+    
+    
     /**
      * Maps a {@link UserAccount} instance to a {@link QueryUserResult} instance.
      *
@@ -85,12 +125,9 @@ public class UserResource {
     private QueryUserResult toQueryUserResult(UserAccount user) {
         QueryUserResult queryUserResult = new QueryUserResult();
         queryUserResult.setId(user.getId());
-        queryUserResult.setFirstName(user.getFirstName());
-        queryUserResult.setLastName(user.getLastName());
-        queryUserResult.setEmail(user.getEmail());
         queryUserResult.setUsername(user.getUsername());
         queryUserResult.setAuthorities(user.getAuthorities());
-        queryUserResult.setActive(user.isActive());
+        queryUserResult.setExpiringDate(user.getExpiringDate());
         return queryUserResult;
     }
 }

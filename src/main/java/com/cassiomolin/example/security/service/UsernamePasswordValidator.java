@@ -31,16 +31,17 @@ public class UsernamePasswordValidator {
      */
     public UserAccount validateCredentials(String username, String password) {
 
-        UserAccount user = userService.findByUsernameOrEmail(username);
+        UserAccount user = userService.findByUsername(username);
+        long currentTime = System.currentTimeMillis();
 
         if (user == null) {
             // User cannot be found with the given username/email
             throw new AuthenticationException("Bad credentials.");
         }
 
-        if (!user.isActive()) {
+        if (currentTime > user.getExpiringDate()) {
             // User is not active
-            throw new AuthenticationException("The user is inactive.");
+            throw new AuthenticationException("The user license is expired.");
         }
 
         if (!passwordEncoder.checkPassword(password, user.getPassword())) {

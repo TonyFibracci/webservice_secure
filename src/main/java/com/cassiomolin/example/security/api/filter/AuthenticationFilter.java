@@ -42,6 +42,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
     public void filter(ContainerRequestContext requestContext) throws IOException {
 
         String authorizationHeader = requestContext.getHeaderString(HttpHeaders.AUTHORIZATION);
+        System.out.println("Header: " + authorizationHeader);
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             String authenticationToken = authorizationHeader.substring(7);
             handleTokenBasedAuthentication(authenticationToken, requestContext);
@@ -54,8 +55,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
     private void handleTokenBasedAuthentication(String authenticationToken, ContainerRequestContext requestContext) {
 
         AuthenticationTokenDetails authenticationTokenDetails = authenticationTokenService.parseToken(authenticationToken);
-        UserAccount user = userService.findByUsernameOrEmail(authenticationTokenDetails.getUsername());
-        System.out.println(user.getUsername() + "\n" + authenticationToken);
+        UserAccount user = userService.findByUsername(authenticationTokenDetails.getUsername());
         singleUserValidator.isUserTokenValid(user.getUsername(), authenticationToken);
         AuthenticatedUserDetails authenticatedUserDetails = new AuthenticatedUserDetails(user.getUsername(), user.getAuthorities());
 
