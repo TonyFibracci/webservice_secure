@@ -452,6 +452,8 @@ public abstract class Game {
 
 	static String printCard(int card){
 		String cardString = "";
+		if(card > 51)
+			return "X";
 		cardString += rankStrings[card / 4];
 		cardString += suitStrings[card % 4];
 		return cardString;
