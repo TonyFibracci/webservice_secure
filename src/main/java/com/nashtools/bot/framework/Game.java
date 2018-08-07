@@ -469,22 +469,17 @@ public abstract class Game {
 
 	static String printBoardCards(State state){
 		String cardString = "";
-		for(int i = 0; i <= state.round; ++i ) {
 		
-			/* print round separator '/' */
-			if( i != 0 ) {	
-				cardString += "/";
-			}	
-			int numBoardCards = 0;
-			if(i == 1)
-				numBoardCards = 3;
-			else if(i == 2)
-				numBoardCards = 4;
-			else if(i == 3)
-				numBoardCards = 5;
-			
-			cardString += printCards(numBoardCards, state.boardCards);
-		}
+		int numBoardCards = 0;
+		if(state.round == 1)
+			numBoardCards = 3;
+		else if(state.round == 2)
+			numBoardCards = 4;
+		else if(state.round == 3)
+			numBoardCards = 5;
+		
+		cardString += printCards(numBoardCards, state.boardCards);
+		
 		return cardString;
 	}
 
@@ -516,10 +511,10 @@ public abstract class Game {
 		  string += printStateCommon(state);
 		
 		  /* STATE:handId:betting:holeCards */
-		  string += printAllHoleCards(state);
+		  string += ":" + printAllHoleCards(state);
 		
 		  /* STATE:handId:betting:holeCards boardCards */
-		  string += printBoardCards(state);
+		  string += ":" + printBoardCards(state);
 		  return string;
 		
 		}
