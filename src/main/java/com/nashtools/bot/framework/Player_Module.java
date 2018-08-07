@@ -1,6 +1,5 @@
 package com.nashtools.bot.framework;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteOrder;
@@ -8,7 +7,6 @@ import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
@@ -22,7 +20,7 @@ public class Player_Module{
 	boolean verbose;
 	public AbstractGame ag;
 	Random random = new Random();
-	FileChannel fc;
+	String strategyPath;
 	public long[] num_entries_per_bucket;
 	public long[] total_num_entries;
 	private Postprocessor postprocessor;
@@ -59,6 +57,7 @@ public class Player_Module{
 		this.ag = null;
 		this.verbose = false;
 		this.postprocessor = postprocessor;
+		this.strategyPath = path;
 		
 	
 	  /* Initialize abstract game, rng from parameters */
@@ -69,16 +68,6 @@ public class Player_Module{
 	 total_num_entries = new long[Constants.MAX_ROUNDS];
 
 	  ag.count_entries( num_entries_per_bucket, total_num_entries );
-
-
-	  /* Now MMAP the entire file */
-	  RandomAccessFile memoryMappedFile = null;
-	try {
-		memoryMappedFile = new RandomAccessFile(path, "r");
-	} catch (FileNotFoundException e) {
-		throw new RuntimeException(e);
-	}
-	  fc = memoryMappedFile.getChannel();
 
 	}
 	
@@ -131,8 +120,6 @@ public class Player_Module{
 		}
 		
 		if(node == null){
-			int kek = 12;
-			int art = kek;
 		
 		}
 		
@@ -387,8 +374,13 @@ public class Player_Module{
 			byteSize = num_choices * Constants.POSTFLOP_BYTE_SIZE;
 		
 		/* Load strategy and calculate sum*/
-		MappedByteBuffer out;
+		MappedByteBuffer out = null;
+		FileChannel fc = null;
+		RandomAccessFile memoryMappedFile = null;
 		try {
+			  /* Now MMAP the entire file */
+			memoryMappedFile = new RandomAccessFile(strategyPath, "r");
+			fc = memoryMappedFile.getChannel();
 			out = fc.map(FileChannel.MapMode.READ_ONLY, bufferPos, byteSize);
 			out.order(ByteOrder.LITTLE_ENDIAN);
 			if(round == 0 && Constants.PREFLOP_BYTE_SIZE == 8){
@@ -498,6 +490,15 @@ public class Player_Module{
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} finally {
+			if(fc != null) {
+				try {
+					fc.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 	
@@ -769,117 +770,67 @@ public class Player_Module{
 			byteSize = num_choices * Constants.POSTFLOP_BYTE_SIZE;
 		
 		/* Load strategy and calculate sum*/
-		MappedByteBuffer out;
+		MappedByteBuffer out = null;
+		FileChannel fc = null;
+		RandomAccessFile memoryMappedFile = null;
 		try {
+			  /* Now MMAP the entire file */
+			memoryMappedFile = new RandomAccessFile(strategyPath, "r");
+			fc = memoryMappedFile.getChannel();
 			out = fc.map(FileChannel.MapMode.READ_ONLY, bufferPos, byteSize);
 			out.order(ByteOrder.LITTLE_ENDIAN);
-			if(round == 0 && Constants.PREFLOP_BYTE_SIZE == 8){
-				LongBuffer lg = out.asLongBuffer();
-				long l[] = new long[lg.capacity()];
-				lg.get(l);
-				long[] strategies = l;
-				/* Zero out negative values and store in the returned array */
-				long sum_values = 0;
-				for (int c = 0; c < num_choices; ++c) {
-					if (strategies[c] <= 0)
-						strategies[c] = 0;
-					pos_entries[c] = strategies[c];
-					sum_values += strategies[c];
-				}
-				/* Get the abstract game action probabilities */
-				if (sum_values == 0) {
-					if (verbose) {
-						System.out.println("ALL POSITIVE ENTRIES ARE ZERO\n");
-					}
-					return wasAllin;
-				}
-				for (int c = 0; c < num_choices; ++c) {
-					action_probs[c] = 1.0 * pos_entries[c] / sum_values;
-				}				
+			
+			byte l[] = new byte[out.capacity()];
+			int[] strategies = new int[out.capacity()];
+			out.get(l);
+			for (int c = 0; c < num_choices; ++c) {
+				strategies[c] = unsignedToBytes(l[c]);
 			}
-			else if(round == 0 && Constants.PREFLOP_BYTE_SIZE == 4){
-				IntBuffer lg = out.asIntBuffer();
-				int l[] = new int[lg.capacity()];
-				lg.get(l);
-				int[] strategies = l;
-				/* Zero out negative values and store in the returned array */
-				long sum_values = 0;
-				for (int c = 0; c < num_choices; ++c) {
-					if (strategies[c] < 0)
-						strategies[c] = 0;
-					pos_entries[c] = strategies[c];
-					sum_values += strategies[c];
-				}	
-				/* Get the abstract game action probabilities */
-				if (sum_values == 0) {
-					if (verbose) {
-						System.out.println("ALL POSITIVE ENTRIES ARE ZERO\n");
-					}
-					return wasAllin;
-				}
-				for (int c = 0; c < num_choices; ++c) {
-					action_probs[c] = 1.0 * pos_entries[c] / sum_values;
-				}
+			/* Zero out negative values and store in the returned array */
+			long sum_values = 0;
+			for (int c = 0; c < num_choices; ++c) {
+				if (strategies[c] < 0)
+					strategies[c] = 0;
+				pos_entries[c] = strategies[c];
+				sum_values += strategies[c];
+			}	
+			/* Get the abstract game action probabilities */
+			if (sum_values == 0) {
+				//if (verbose) {
+					System.out.println("ALL POSITIVE ENTRIES ARE ZERO\n");
+				//}
+				throw new RuntimeException("ALL POSITIVE ENTRIES ARE ZERO");
 			}
-			else if(Constants.POSTFLOP_BYTE_SIZE == 4){
-				IntBuffer lg = out.asIntBuffer();
-				int l[] = new int[lg.capacity()];
-				lg.get(l);
-				int[] strategies = l;
-				/* Zero out negative values and store in the returned array */
-				long sum_values = 0;
-				for (int c = 0; c < num_choices; ++c) {
-					if (strategies[c] < 0)
-						strategies[c] = 0;
-					pos_entries[c] = strategies[c];
-					sum_values += strategies[c];
-				}	
-				/* Get the abstract game action probabilities */
-				if (sum_values == 0) {
-					if (verbose) {
-						System.out.println("ALL POSITIVE ENTRIES ARE ZERO\n");
-					}
-					return wasAllin;
-				}
-				for (int c = 0; c < num_choices; ++c) {
-					action_probs[c] = 1.0 * pos_entries[c] / sum_values;
-				}
+			for (int c = 0; c < num_choices; ++c) {
+				action_probs[c] = 1.0 * pos_entries[c] / sum_values;
+			}	
+			Action[] actions = new Action[Constants.MAX_ABSTRACT_ACTIONS];
+			ag.action_abs.get_actions(ag.game, old_state, actions);			
+			if(postprocessor != null){
+				postprocessor.postprocess(state, actions, action_probs, num_choices);					
 			}
-			else{
-				byte l[] = new byte[out.capacity()];
-				int[] strategies = new int[out.capacity()];
-				out.get(l);
-				for (int c = 0; c < num_choices; ++c) {
-					strategies[c] = unsignedToBytes(l[c]);
-				}
-				/* Zero out negative values and store in the returned array */
-				long sum_values = 0;
-				for (int c = 0; c < num_choices; ++c) {
-					if (strategies[c] < 0)
-						strategies[c] = 0;
-					pos_entries[c] = strategies[c];
-					sum_values += strategies[c];
-				}	
-				/* Get the abstract game action probabilities */
-				if (sum_values == 0) {
-					//if (verbose) {
-						System.out.println("ALL POSITIVE ENTRIES ARE ZERO\n");
-					//}
-					throw new RuntimeException("ALL POSITIVE ENTRIES ARE ZERO");
-				}
-				for (int c = 0; c < num_choices; ++c) {
-					action_probs[c] = 1.0 * pos_entries[c] / sum_values;
-				}	
-				Action[] actions = new Action[Constants.MAX_ABSTRACT_ACTIONS];
-				ag.action_abs.get_actions(ag.game, old_state, actions);			
-				if(postprocessor != null){
-					postprocessor.postprocess(state, actions, action_probs, num_choices);					
-				}
-			}
+			
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} finally {
+			if(fc != null) {
+				try {
+					fc.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			if(memoryMappedFile != null) {
+				try {
+					memoryMappedFile.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
 		return wasAllin;
 	}
