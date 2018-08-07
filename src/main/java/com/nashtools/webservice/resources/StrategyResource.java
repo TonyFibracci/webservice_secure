@@ -14,6 +14,7 @@ import javax.ws.rs.core.SecurityContext;
 import com.nashtools.bot.Explorer2;
 import com.nashtools.bot.framework.Action;
 import com.nashtools.bot.framework.ActionType;
+import com.nashtools.bot.framework.Game;
 import com.nashtools.bot.framework.State;
 
 
@@ -36,6 +37,7 @@ public class StrategyResource {
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Action displayState(State state) {
 		try {
+			System.out.println(Game.printState(state));
 			Action a = Explorer2.handleGameStateChange(state);
 			return a;
 		}catch(Exception e) {

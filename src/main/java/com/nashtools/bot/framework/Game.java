@@ -424,4 +424,101 @@ public abstract class Game {
 			}
 		}
 	}
+	
+	static String[] actionStrings = {"f", "c", "r"};
+	
+	public static String printAction(Action action){
+		
+		  return actionStrings[action.type.ordinal()];
+	}
+
+	public static String printBetting(State state){
+		  String betString = "";
+		  for(int i = 0; i <= state.round; ++i ) {
+		    /* print state separator */
+			  if(i != 0)
+				  betString += "/";
+
+		    /* print betting for round */
+		    for(int a = 0; a < state.numActions[ i ]; ++a){
+		    	betString += printAction(state.action[ i ][ a ]);
+		    }
+		}
+		  return betString;
+	}
+
+	static String suitStrings[] = {"c", "d", "h", "s"};
+	static String rankStrings[] = {"2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"};
+
+	static String printCard(int card){
+		String cardString = "";
+		cardString += rankStrings[card / 4];
+		cardString += suitStrings[card % 4];
+		return cardString;
+	}
+
+	static String printCards(int numCards, int cards[]){
+		  String cardString = "";
+		  for(int i = 0; i < numCards; ++i ) {	
+			  cardString += printCard(cards[ i ]);
+		  }
+		  return cardString;
+	}
+
+	static String printBoardCards(State state){
+		String cardString = "";
+		for(int i = 0; i <= state.round; ++i ) {
+		
+			/* print round separator '/' */
+			if( i != 0 ) {	
+				cardString += "/";
+			}	
+			int numBoardCards = 0;
+			if(i == 1)
+				numBoardCards = 3;
+			else if(i == 2)
+				numBoardCards = 4;
+			else if(i == 3)
+				numBoardCards = 5;
+			
+			cardString += printCards(numBoardCards, state.boardCards);
+		}
+		return cardString;
+	}
+
+	static String printAllHoleCards(State state){
+		String cardString = "";
+		for(int p = 0; p < 2; ++p ) {
+			/* print player separator '|' */
+			if( p != 0 ) {
+				cardString += "|";
+			}
+			cardString += printCards(2, state.holeCards[ p ]);
+		}
+		return cardString;
+	}
+		
+	static String printStateCommon(State state){
+		String string = "";
+		string = string.concat(":" + state.handId);
+		string = string.concat(":");
+	    string += printBetting(state);
+		return string;
+	}
+		
+	public static String printState(State state){
+			
+		  String string = "STATE";
+		
+		  /* STATE:handId:betting: */
+		  string += printStateCommon(state);
+		
+		  /* STATE:handId:betting:holeCards */
+		  string += printAllHoleCards(state);
+		
+		  /* STATE:handId:betting:holeCards boardCards */
+		  string += printBoardCards(state);
+		  return string;
+		
+		}
 }
